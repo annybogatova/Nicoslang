@@ -1,82 +1,37 @@
 package org.example;
 
+import org.example.AST.Node;
+
 import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
-
-    public static TokenType getNextTokenType(String input, int position){
-        char nextChar = input.charAt(position);
-        if(Character.isAlphabetic(nextChar)){
-            return TokenType.Variable;
-        } else if (Character.isDigit(nextChar) || nextChar == '.') {
-            return TokenType.Numeric;
-        } else if (Character.isWhitespace(nextChar)) {
-            return TokenType.Whitespace;
-        } else if (nextChar == '"') {
-            return TokenType.String;
-        } else if (nextChar == '(' || nextChar == ')') {
-            return TokenType.GroupDivider;
-        } else return TokenType.Operator;
-    }
-    public static ArrayList<Token> tokenizer(String input){
-        ArrayList<Token> result = new ArrayList<Token>();
-        int position = 0;
-        while (position < input.length()){
-            TokenType nextTokenType = getNextTokenType(input, position);
-            if (nextTokenType == TokenType.Numeric || nextTokenType == TokenType.Variable){
-                String tokenValue = "";
-                while ( position < input.length() && (getNextTokenType(input, position) == nextTokenType)){
-                    tokenValue += input.charAt(position);
-                    position++;
-                }
-                result.add(new Token(tokenValue, nextTokenType));
-            } else if(nextTokenType == TokenType.Whitespace){
-                while (position < input.length() && (getNextTokenType(input, position) == TokenType.Whitespace)){
-                    position++;
-                }
-            } else if (nextTokenType == TokenType.GroupDivider) {
-                result.add(new Token(String.valueOf(input.charAt(position)), nextTokenType));
-                position++;
-            } else if (nextTokenType == TokenType.String) {
-                String tokenValue = "";
-                position++;
-                while (position < input.length() && input.charAt(position) != '"'){
-                    tokenValue += input.charAt(position);
-                    position++;
-                }
-                position++;
-                result.add(new Token(tokenValue, nextTokenType));
-            } else {
-                final String[] ValidOperators = {"<=", ">=", "+=", "-=", "++", "--", "=", "<", ">", "+", "-" };
-                for (String operator : ValidOperators){
-                    if(input.substring(position).startsWith(operator)){
-                        result.add(new Token(operator, TokenType.Operator));
-                        position += operator.length();
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
-    }
     public static void main(String[] args) {
         File file = new File("C:\\Users\\aniad\\IdeaProjects\\Nicoslang\\nicoslang.nsl");
-        SyntaxAnalyzer(file);
-
-
+        readFile(file);
     }
-    private static void SyntaxAnalyzer(File file) {
+    private static void readFile(File file) {
 
         try (FileReader fr = new FileReader(file); BufferedReader br = new BufferedReader(fr, 200)){
+            StringBuilder code = new StringBuilder();
             String line = br.readLine();
-            while (line != null && !(line.equals("\n") || line.equals("") || line.equals(" "))){
-                ArrayList<Token> tokenslist = tokenizer(line);
-                for (Token token : tokenslist){
-                    System.out.println("[" + token.getType() + "] ---> " + token.getValue());
-                }
+            while (line != null){
+                code.append(line).append("\n");
+//                Lexer lexer = new Lexer(line);
+//                ArrayList<Token> tokenlist = lexer.tokenize();
+//                for (Token token : tokenlist){
+//                    System.out.println("[" + token.getType() + "] ---> " + token.getValue() + " ---> " + token.getPosition());
+//                }
                 line = br.readLine();
             }
+            Lexer lexer = new Lexer(code.toString());
+            ArrayList<Token> tokenlist = lexer.tokenize();
+            for (Token token : tokenlist){
+                System.out.println("[" + token.getType() + "] ---> " + token.getValue() + " ---> " + token.getPosition());
+            }
+            Parser parser = new Parser(tokenlist);
+            Node statements = parser.parse();
+            System.out.println(statements);
         } catch (IOException ex){
             System.out.println(ex.getMessage());
         }
