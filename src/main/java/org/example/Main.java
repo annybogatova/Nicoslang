@@ -1,7 +1,9 @@
 package org.example;
 
 import org.example.AST.Node;
+import org.example.AST.Statements;
 
+import java.beans.Statement;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -17,11 +19,6 @@ public class Main {
             String line = br.readLine();
             while (line != null){
                 code.append(line).append("\n");
-//                Lexer lexer = new Lexer(line);
-//                ArrayList<Token> tokenlist = lexer.tokenize();
-//                for (Token token : tokenlist){
-//                    System.out.println("[" + token.getType() + "] ---> " + token.getValue() + " ---> " + token.getPosition());
-//                }
                 line = br.readLine();
             }
             Lexer lexer = new Lexer(code.toString());
@@ -30,8 +27,8 @@ public class Main {
                 System.out.println("[" + token.getType() + "] ---> " + token.getValue() + " ---> " + token.getPosition());
             }
             Parser parser = new Parser(tokenlist);
-            Node statements = parser.parse();
-            System.out.println(statements);
+            Statements statements = parser.parse();
+            System.out.println(statements.getCode());
         } catch (IOException ex){
             System.out.println(ex.getMessage());
         }

@@ -17,18 +17,18 @@ public class Parser {
 
     // Rval = -Xval + (Yval – Zval)
     // Rval - value
-    // = - bin operation
+    // =/+/- - bin operation
     // -Xval + (Yval – Zval) - formula
     // -Xval - formula
     // (Yval – Zval) - formula
     //
-    //       =
-    //    /     \
-    // Rval       +
-    //        /       \
-    //      -            -
-    //   /   \         /    \
-    //  0    Xval     Yval   Zval
+    //         =
+    //      /     \
+    //   Rval       +
+    //          /       \
+    //        -            -
+    //      /            /    \
+    //    Xval         Yval   Zval
 
     private Token match(TokenType tokenType) {
         if(position < this.tokenList.size()){
@@ -50,11 +50,10 @@ public class Parser {
         throw new RuntimeException(tokenType.name() + " expected in " + position + " position");
     }
 
-    public Node parse(){
+    public Statements parse(){
         Statements statement = new Statements();
         while (position < tokenList.size()){
             Node codeLine = parseLine();
-            require(TokenType.NewLine);
             statement.addNode(codeLine);
         }
         return statement;
@@ -62,8 +61,7 @@ public class Parser {
 
     // первый элемент строки или переменная или функция
     private Node parseLine() {
-        if(match(TokenType.Variable) != null){
-            position--;
+        if(tokenList.get(position).getType() == TokenType.Variable){
             Node variable = parseVariableOrNumber();
             if(tokenList.get(position).getType() == TokenType.Assign){
                 Token assignToken = match(TokenType.Assign);
@@ -73,20 +71,23 @@ public class Parser {
             }
         }
         //не переменная - print/if/while/...
-        position--;
         return null;
     }
 
     private Node parseFormula() {
         Node left = parseParenthesis();
-        Token operator;
-        while ((operator = match(tokenList.get(position).getType())) != null && (operator.getType() == TokenType.Plus || operator.getType() == TokenType.Minus
-                || operator.getType() == TokenType.Division || operator.getType() == TokenType.Multiplication) ){
-
+        Token operator = new Token(tokenList.get(position).getValue(), tokenList.get(position).getType(), position);
+        while (operator.getType() != TokenType.NewLine && (operator.getType() == TokenType.Plus
+                || operator.getType() == TokenType.Minus || operator.getType() == TokenType.Division
+                || operator.getType() == TokenType.Multiplication) ){
+            position++;
             Node right = parseParenthesis();
             left = new BinaryOperations(operator, left, right);
+            operator = new Token(tokenList.get(position).getValue(), tokenList.get(position).getType(), position);
            }
-
+        if(operator.getType() == TokenType.NewLine){
+            position++;
+        }
         return left;
     }
     private Node parseParenthesis(){
