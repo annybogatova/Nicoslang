@@ -3,32 +3,14 @@ package org.example;
 import org.example.AST.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Parser {
-    ArrayList<Token> tokenList;
-    int position = 0;
-    Map<String, String> variable = new HashMap<>();
+    private ArrayList<Token> tokenList;
+    private int position = 0;
 
     public Parser(ArrayList<Token> tokenList) {
         this.tokenList = tokenList;
     }
-
-    // Rval = -Xval + (Yval – Zval)
-    // Rval - value
-    // =/+/- - bin operation
-    // -Xval + (Yval – Zval) - formula
-    // -Xval - formula
-    // (Yval – Zval) - formula
-    //
-    //         =
-    //      /     \
-    //   Rval       +
-    //          /       \
-    //        -            -
-    //      /            /    \
-    //    Xval         Yval   Zval
 
     private Token match(TokenType tokenType) {
         if(position < this.tokenList.size()){
@@ -66,14 +48,27 @@ public class Parser {
             if(tokenList.get(position).getType() == TokenType.Assign){
                 Token assignToken = match(TokenType.Assign);
                 Node formula = parseFormula();
-                BinaryOperations binNode = new BinaryOperations(assignToken, variable, formula);
-                return  binNode;
+                return new BinaryOperations(assignToken, variable, formula);
+            } else {
+                throw new RuntimeException("Assign operator is missing!");
             }
+        } else if (tokenList.get(position).getType() == TokenType.Print) {
+            Node printNode = parsePrint();
+            return printNode;
         }
         //не переменная - print/if/while/...
-        return null;
+        throw new RuntimeException("Invalid character in " + position);
     }
 
+    private Node parsePrint() {
+        Token token = match(TokenType.Print);
+        if(token!=null){
+            return new UnaryOperator(token, parseFormula());
+        }
+        throw new RuntimeException("Error in " + position);
+    }
+
+    // для +- binOperation(operator, left, parenthesis)
     private Node parseFormula() {
         Node left = parseParenthesis();
         Token operator = new Token(tokenList.get(position).getValue(), tokenList.get(position).getType(), position);
