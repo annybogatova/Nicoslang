@@ -3,7 +3,7 @@ package org.example.AST;
 import java.util.ArrayList;
 
 public class Statements extends Node {
-    ArrayList<Node> code = new ArrayList<>();
+    private final ArrayList<Node> code = new ArrayList<>();
 
     public ArrayList<Node> getCode() {
         return code;
