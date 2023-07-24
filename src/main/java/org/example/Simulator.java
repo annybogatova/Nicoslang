@@ -2,7 +2,6 @@ package org.example;
 
 import org.example.AST.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 

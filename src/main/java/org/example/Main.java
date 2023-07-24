@@ -10,7 +10,7 @@ public class Main {
         File file = new File("C:\\Users\\aniad\\IdeaProjects\\Nicoslang\\nicoslang.nsl");
         String inputCode = readFile(file);
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Compile or simulate " + file.getName() + " file?\n(Com\\Sim?)");
+        System.out.println("Compile or simulate " + file.getName() + " file?\n(com\\sim?)");
         String answer = scanner.nextLine();
         if(answer.equals("com")){
             String resultCode = compileCode(inputCode);

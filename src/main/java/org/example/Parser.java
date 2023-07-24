@@ -5,7 +5,7 @@ import org.example.AST.*;
 import java.util.ArrayList;
 
 public class Parser {
-    private ArrayList<Token> tokenList;
+    private final ArrayList<Token> tokenList;
     private int position = 0;
 
     public Parser(ArrayList<Token> tokenList) {

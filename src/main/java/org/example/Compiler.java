@@ -18,18 +18,6 @@ public class Compiler {
 
     private final Map<String, Integer> variables = new HashMap<>();
 
-    // Rval = -Xval + (Yval – Zval)
-    //
-    //         =
-    //      /     \
-    //   Rval       +
-    //          /       \
-    //        -            -
-    //      /            /    \
-    //    Xval         Yval   Zval
-    //
-    //
-
     public String compile(Node node) {
         if (node instanceof Statements) {
             for (Node line : ((Statements) node).getCode()) {
