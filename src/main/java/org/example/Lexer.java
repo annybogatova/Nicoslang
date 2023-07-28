@@ -10,7 +10,7 @@ public class Lexer {
     public Lexer(String input) {
         this.input = input;
     }
-    public TokenType getNextTokenType(String input, int position){
+    private TokenType getNextTokenType(String input, int position){
         char nextChar = input.charAt(position);
         if(Character.isAlphabetic(nextChar)){
             return TokenType.Variable;
@@ -37,18 +37,32 @@ public class Lexer {
         }else if (nextChar == '=') {
             return TokenType.Assign;
         } else
-            return TokenType.Operator;
+            return TokenType.NewTokenType;
     }
     public ArrayList<Token> tokenize(){
         while (position < input.length()){
             TokenType nextTokenType = getNextTokenType(input, position);
-            if (nextTokenType == TokenType.Numeric || nextTokenType == TokenType.Variable){
+            if(nextTokenType == TokenType.Numeric){
+                StringBuilder numberTokenValue = new StringBuilder();
+                while ( position < input.length() && (getNextTokenType(input, position) == nextTokenType)){
+                    numberTokenValue.append(input.charAt(position));
+                    position++;
+                }
+                if(numberTokenValue.toString().matches("[-+]?\\d+") || numberTokenValue.toString().matches("(([-+])?[0-9]+(\\.[0-9]+)?)+")){
+                    result.add(new Token(numberTokenValue.toString(), nextTokenType, position));
+                } else
+                    throw new RuntimeException("Invalid numeric in " + position);
+            } else if (nextTokenType == TokenType.Variable){
                 StringBuilder tokenValue = new StringBuilder();
                 while ( position < input.length() && (getNextTokenType(input, position) == nextTokenType)){
                     tokenValue.append(input.charAt(position));
                     position++;
                 }
-                result.add(new Token(tokenValue.toString(), nextTokenType, position));
+                if(tokenValue.toString().equals("print")){
+                    result.add(new Token(tokenValue.toString(), TokenType.Print, position));
+                } else {
+                    result.add(new Token(tokenValue.toString(), nextTokenType, position));
+                }
             } else if(nextTokenType == TokenType.Whitespace){
                 while (position < input.length() && getNextTokenType(input, position) == TokenType.Whitespace){
                     position++;
@@ -57,8 +71,8 @@ public class Lexer {
                 position++;
                 result.add(new Token("\\n", nextTokenType, position));
             } else if (nextTokenType == TokenType.LParenthesis || nextTokenType == TokenType.RParenthesis) {
-                position++;
                 result.add(new Token(String.valueOf(input.charAt(position)), nextTokenType, position));
+                position++;
             } else if (nextTokenType == TokenType.String) {
                 StringBuilder tokenValue = new StringBuilder();
                 position++;

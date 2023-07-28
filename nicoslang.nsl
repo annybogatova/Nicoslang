@@ -1,1 +1,5 @@
-c = 2
+Xval = 26
+Yval = Xval + 4
+Zval = 40
+Rval = (Xval + (Yval - Zval)) * 2
+print(Rval)

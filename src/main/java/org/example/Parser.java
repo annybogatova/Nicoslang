@@ -3,32 +3,14 @@ package org.example;
 import org.example.AST.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Parser {
-    ArrayList<Token> tokenList;
-    int position = 0;
-    Map<String, String> variable = new HashMap<>();
+    private final ArrayList<Token> tokenList;
+    private int position = 0;
 
     public Parser(ArrayList<Token> tokenList) {
         this.tokenList = tokenList;
     }
-
-    // Rval = -Xval + (Yval – Zval)
-    // Rval - value
-    // = - bin operation
-    // -Xval + (Yval – Zval) - formula
-    // -Xval - formula
-    // (Yval – Zval) - formula
-    //
-    //       =
-    //    /     \
-    // Rval       +
-    //        /       \
-    //      -            -
-    //   /   \         /    \
-    //  0    Xval     Yval   Zval
 
     private Token match(TokenType tokenType) {
         if(position < this.tokenList.size()){
@@ -50,11 +32,10 @@ public class Parser {
         throw new RuntimeException(tokenType.name() + " expected in " + position + " position");
     }
 
-    public Node parse(){
+    public Statements parse(){
         Statements statement = new Statements();
         while (position < tokenList.size()){
             Node codeLine = parseLine();
-            require(TokenType.NewLine);
             statement.addNode(codeLine);
         }
         return statement;
@@ -62,31 +43,46 @@ public class Parser {
 
     // первый элемент строки или переменная или функция
     private Node parseLine() {
-        if(match(TokenType.Variable) != null){
-            position--;
+        if(tokenList.get(position).getType() == TokenType.Variable){
             Node variable = parseVariableOrNumber();
             if(tokenList.get(position).getType() == TokenType.Assign){
                 Token assignToken = match(TokenType.Assign);
                 Node formula = parseFormula();
-                BinaryOperations binNode = new BinaryOperations(assignToken, variable, formula);
-                return  binNode;
+                return new BinaryOperations(assignToken, variable, formula);
+            } else {
+                throw new RuntimeException("Assign operator is missing!");
             }
+        } else if (tokenList.get(position).getType() == TokenType.Print) {
+            Node printNode = parsePrint();
+            return printNode;
         }
         //не переменная - print/if/while/...
-        position--;
-        return null;
+        throw new RuntimeException("Invalid character in " + position);
     }
 
+    private Node parsePrint() {
+        Token token = match(TokenType.Print);
+        if(token!=null){
+            return new UnaryOperator(token, parseFormula());
+        }
+        throw new RuntimeException("Error in " + position);
+    }
+
+    // для +- binOperation(operator, left, parenthesis)
     private Node parseFormula() {
         Node left = parseParenthesis();
-        Token operator;
-        while ((operator = match(tokenList.get(position).getType())) != null && (operator.getType() == TokenType.Plus || operator.getType() == TokenType.Minus
-                || operator.getType() == TokenType.Division || operator.getType() == TokenType.Multiplication) ){
-
+        Token operator = new Token(tokenList.get(position).getValue(), tokenList.get(position).getType(), position);
+        while (operator.getType() != TokenType.NewLine && (operator.getType() == TokenType.Plus
+                || operator.getType() == TokenType.Minus || operator.getType() == TokenType.Division
+                || operator.getType() == TokenType.Multiplication) ){
+            position++;
             Node right = parseParenthesis();
             left = new BinaryOperations(operator, left, right);
+            operator = new Token(tokenList.get(position).getValue(), tokenList.get(position).getType(), position);
            }
-
+        if(operator.getType() == TokenType.NewLine){
+            position++;
+        }
         return left;
     }
     private Node parseParenthesis(){

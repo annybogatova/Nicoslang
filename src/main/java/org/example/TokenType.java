@@ -1,10 +1,8 @@
 package org.example;
 
 public enum TokenType {
-    NewLine,
-    Whitespace,
     Numeric,
-    String,
+    Variable,
     Assign,
     LParenthesis,
     RParenthesis,
@@ -12,6 +10,9 @@ public enum TokenType {
     Minus,
     Multiplication,
     Division,
-    Operator,
-    Variable
+    Print,
+    NewLine,
+    Whitespace,
+    String,
+    NewTokenType
 }
